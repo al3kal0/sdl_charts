@@ -1,6 +1,7 @@
 const std = @import("std");
 const c = @import("c.zig");
 const SDL = @import("sdl2.zig");
+const ImGui = @import("cimgui.zig");
 
 pub fn main() anyerror!void {
     std.log.info("All your codebase are belong to us.", .{});
@@ -38,6 +39,15 @@ pub fn main() anyerror!void {
     // vert[2].color.a = 255;
 
     var quit = false;
+    _ = ImGui.CreateContext(null);
+    try ImGui.ImplSDL2_InitForSDLRenderer(window);
+    ImGui.StyleColorsDark(null);
+    defer ImGui.ImplSDL2_Shutdown();
+    defer ImGui.DestroyContext(null);
+
+    var showDemoWindow = true;
+    var showAnotherWindow = false;
+    // var clearColor = c.ImVec4{}
 
     while(!quit)
     {
@@ -62,6 +72,30 @@ pub fn main() anyerror!void {
         // SDL.RenderGeometry(renderer, null, vert, null);
         
         SDL.RenderPresent(renderer);
+
+
+        ImGui.ImplSDL2_NewFrame();
+        ImGui.NewFrame();
+
+        if(showDemoWindow) ImGui.ShowDemoWindow(&showAnotherWindow);
+
+        {
+            var f: f32 = undefined;
+            _ = ImGui.Begin("hellow box", null, 0);
+            _ = ImGui.Text("this is text");
+            _ = ImGui.CheckBox("demo window", null);
+            _ = ImGui.SliderFloat("float", &f, 0.0, 1.0, "%.3f", 0);
+            ImGui.End();
+        }
+
+        if(showAnotherWindow)
+        {
+            _ = ImGui.Begin("another window", &showAnotherWindow, 0);
+            _ = ImGui.Text("hellow from anotehr window");
+            ImGui.End();
+        }
+
+        ImGui.Render();
     }
 
     SDL.Quit();

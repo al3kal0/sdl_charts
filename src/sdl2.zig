@@ -1,4 +1,6 @@
 const c = @import("c.zig");
+const vectors_lib = @import("vectors_lib.zig");
+const Vector3 = vectors_lib.Vector3;
 
 // constants
 pub const Bool = c.SDL_bool;
@@ -148,25 +150,6 @@ pub fn GetError() []const u8
     unreachable;
 }
 
-/// RGBA layout Color
-// pub const Color = struct
-// {
-    // r: u8,
-    // g: u8,
-    // b: u8,
-    // a: u8,
-// 
-    // pub fn create(color: u32) Color
-    // {
-        // const ptr = @ptrCast([*]u8, &color);
-        // const r = ptr[0];
-        // const g = ptr[1];
-        // const b = ptr[2];
-        // const a = ptr[3];
-// 
-        // return .{ r, g, b, a };
-    // }
-// };
 
 pub const EXT = struct
 {
@@ -196,19 +179,20 @@ pub inline fn RenderGeometry(renderer: Renderer, texture: Texture, vertices: []V
 
 /// Render a list of triangles, optionally using a texture and indices into the vertex arrays Color 
 /// and alpha modulation is done per vertex (SDL_SetTextureColorMod and SDL_SetTextureAlphaMod are ignored).
-// pub inline fn RenderGeometryRaw(renderer: Renderer,
-                                // texture: Texture,
-                                // xy: []f32,
-                                // color: Color,
-                                // uv: []f32,
-                                // num_vertices: u32,
-                                // indices: *anyopaque,
-                                // num_indices: u32,
-                                // size_indices: u32
-                                // ) !void
-// {
-    // unreachable;
-// }
+pub inline fn RenderGeometryRaw(renderer: Renderer, texture: Texture, xy: []Vector3, color: []Color, uv: ?[]f32, indices: ?[]u16) !void
+{
+    if(c.SDL_RenderGeometryRaw(renderer,
+                               texture,
+                               @ptrCast([*c]f32, xy),
+                               @sizeOf(f32) * 3,                // xy_stride
+                               @ptrCast([*c]Color, color),
+                               @sizeOf(Color),                  // color_stride
+                               @ptrCast([*c]f32, uv),
+                               @sizeOf(f32) * 2,                // uv_stride
+                               xy.len,                          // num_vertices ^ the above thing is the vertices
+                               @ptrCast([*c]anyopaque, indices),
+                               indices.len) != 0) return Error.SLD_error;
+}
 
 
 

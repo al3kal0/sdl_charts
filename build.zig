@@ -16,7 +16,10 @@ pub fn build(b: *std.build.Builder) void {
     exe.setBuildMode(mode);
     exe.linkLibC();
     exe.linkSystemLibrary("SDL2");
-    
+    // exe.linkSystemLibrary("SDL2_ttf");
+    exe.addIncludeDir("include");
+    exe.addLibPath("include");
+    exe.linkSystemLibraryName("cimgui_sdl");    
     exe.install();
 
     const run_cmd = exe.run();
