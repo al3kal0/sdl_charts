@@ -4,5 +4,19 @@ pub usingnamespace @cImport({
     @cInclude("cimgui_extras.h");
     @cInclude("cimgui_impl.h");
     @cInclude("SDL.h");
-    // @cInclude("SDL_ttf.h");
+    @cInclude("SDL_opengl.h");
+    @cInclude("GL/glu.h");    
+    
+    @cInclude("include/c/gr_context.h");      
+    @cInclude("include/c/sk_canvas.h");
+    @cInclude("include/c/sk_vertices.h");
+    @cInclude("include/c/sk_font.h");
+    @cInclude("include/c/sk_typeface.h");
+    @cInclude("include/c/sk_surface.h");       
+    @cInclude("include/c/sk_matrix.h");       
+    @cInclude("include/c/sk_path.h");       
+    @cInclude("include/c/sk_paint.h");
+    @cInclude("include/c/sk_types.h");
+    @cInclude("include/c/sk_rrect.h");
+    @cInclude("include/c/sk_colorspace.h");              
 });

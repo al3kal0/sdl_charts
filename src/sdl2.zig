@@ -32,6 +32,25 @@ pub const WindowPosUndefined = c.SDL_WINDOWPOS_UNDEFINED;
 // pub const WindowMaximized = c.SDL_WINDOW_MAXIMIZED;
 // pub const WindowAllowHighDPI = c.SDL_WINDOW_ALLOW_HIGHDPI;
 
+
+pub const InitFlags = enum(u32)
+{
+    Timer = c.SDL_INIT_TIMER,
+    Audio = c.SDL_INIT_AUDIO,
+    Video = c.SDL_INIT_VIDEO,
+    Joystick = c.SDL_INIT_JOYSTICK,
+    Haptic = c.SDL_INIT_HAPTIC,
+    GameController = c.SDL_INIT_GAMECONTROLLER,
+    Events = c.SDL_INIT_EVENTS,
+    Everything = c.SDL_INIT_EVERYTHING,
+};
+
+pub inline fn Init(flags: InitFlags) !void
+{
+    if(c.SDL_Init(@enumToInt(flags)) != 0) return Error.SDL_error;
+}
+
+
 /// An enumeration of window states.
 pub const WindowFlags = enum(u32)
 {
@@ -83,9 +102,9 @@ pub inline fn PollEvent(event: *Event) bool
 }
 
 /// Create a window with the specified position, dimensions, and flags.
-pub inline fn CreateWindow(title: []const u8, x: u32, y: u32, w: u32, h: u32, flags: WindowFlags) Window
+pub inline fn CreateWindow(title: [:0]const u8, x: u32, y: u32, w: u32, h: u32, flags: WindowFlags) Window
 {    
-    return c.SDL_CreateWindow(@ptrCast([*c]const u8, &title),
+    return c.SDL_CreateWindow(@ptrCast([*c]const u8, title.ptr),
                               @intCast(c_int, x),
                               @intCast(c_int, y),
                               @intCast(c_int, w),
@@ -172,9 +191,9 @@ pub inline fn RenderGeometry(renderer: Renderer, texture: Texture, vertices: []V
     if(c.SDL_RenderGeometry(renderer,
                             texture,
                             @ptrCast([*c]Vertex, vertices),
-                            vertices.len,
+                            @intCast(c_int, vertices.len),
                             @ptrCast([*c]c_int, indices),
-                            indices.len) != 0) return Error.SDL_error;
+                            @intCast(c_int, indices.len)) != 0) return Error.SDL_error;
 }
 
 /// Render a list of triangles, optionally using a texture and indices into the vertex arrays Color 
@@ -189,9 +208,9 @@ pub inline fn RenderGeometryRaw(renderer: Renderer, texture: Texture, xy: []Vect
                                @sizeOf(Color),                  // color_stride
                                @ptrCast([*c]f32, uv),
                                @sizeOf(f32) * 2,                // uv_stride
-                               xy.len,                          // num_vertices ^ the above thing is the vertices
+                               @intCast(c_int, xy.len),                          // num_vertices ^ the above thing is the vertices
                                @ptrCast([*c]anyopaque, indices),
-                               indices.len) != 0) return Error.SLD_error;
+                               @intCast(c_int, indices.len)) != 0) return Error.SLD_error;
 }
 
 
@@ -199,25 +218,31 @@ pub inline fn RenderGeometryRaw(renderer: Renderer, texture: Texture, xy: []Vect
 /// Draw a series of connected lines on the current rendering target.
 pub inline fn RenderDrawLines(renderer: Renderer, points: []Point) !void
 {
-    if(c.SDL_RenderDrawLines(renderer, @ptrCast([*c]Point, points), points.len) != 0) return Error.SDL_error;
+    if(c.SDL_RenderDrawLines(renderer, @ptrCast([*c]Point, points), @intCast(c_int, points.len)) != 0) return Error.SDL_error;
 }
 
 /// Draw multiple points on the current rendering target.
 pub inline fn RenderDrawPoints(renderer: Renderer, points: []Point) !void
 {
-    if(c.SDL_RenderDrawPoints(renderer, @ptrCast([*c]Point, points), points.len) != 0) return Error.SDL_error;
+    if(c.SDL_RenderDrawPoints(renderer, @ptrCast([*c]Point, points), @intCast(c_int, points.len)) != 0) return Error.SDL_error;
+}
+
+/// Draw a rectangle on the current rendering target.
+pub inline fn RenderDrawRect(renderer: Renderer, rect: *const Rect) !void
+{
+    if(c.SDL_RenderDrawRect(renderer, rect) != 0) return Error.SDL_error;
 }
 
 /// Draw some number of rectangles on the current rendering target. 
 pub inline fn RenderDrawRects(renderer: Renderer, rects: []Rect) !void
 {
-    if(c.SDL_RenderDrawRects(renderer, @ptrCast([*c]Rect, rects), rects.len) != 0) return Error.SDL_error;
+    if(c.SDL_RenderDrawRects(renderer, @ptrCast([*c]Rect, rects), @intCast(c_int, rects.len)) != 0) return Error.SDL_error;
 }
 
 /// Fill some number of rectangles on the current rendering target with the drawing color.
 pub inline fn RenderFillRects(renderer: Renderer, rects: []Rect) !void
 {
-    if(c.SDL_RenderFillRects(renderer, @ptrCast([*c]Rect, rects), rects.len) != 0) return Error.SDL_error;
+    if(c.SDL_RenderFillRects(renderer, @ptrCast([*c]Rect, rects), @intCast(c_int, rects.len)) != 0) return Error.SDL_error;
 }
 
 /// Set the color used for drawing operations (Rect, Line and Clear).
