@@ -1,58 +1,126 @@
 const std = @import("std");
-const c = @import("c.zig");
+const gl = @import("opengl_bindings.zig");
 const SDL = @import("sdl2.zig");
-const ImGui = @import("cimgui.zig");
+const SDL_GL = @import("sdl2_gl.zig");
+const Sk = @import("sk.zig");
+const c = @import("c.zig");
 
-pub fn main() anyerror!void {
-    std.log.info("All your codebase are belong to us.", .{});
+const kNumPoints = 5;
+const kStencilBits = 8; 
+// If you want multisampling, uncomment the below lines and set a sample count
+const kMsaaSampleCount = 0; //4;
+// SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+// SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, kMsaaSampleCount);
 
-    const flags = SDL.WindowFlags.Maximized;
-    const window = SDL.CreateWindow("example", SDL.WindowPosCentered, SDL.WindowPosCentered, 800, 600, flags);
+fn create_star(canvas: Sk.Canvas) void
+{
+    _ = canvas;   
+}
+
+// necessary to load OpenGL functions
+fn wrapper(ctx: void, entry_point: [:0]const u8) ?*anyopaque
+{
+    _ = ctx;
+    return SDL_GL.GetProcAddress(entry_point);
+}
+
+pub fn main() !void
+{
+    var rect = Sk.Rect{ .left = 0.0, .top =0.0, .right = 200.0, .bottom = 100.0 };
+
+    try SDL.Init(SDL.INIT_VIDEO | SDL.INIT_EVENTS);
+    defer SDL.Quit();
+    
+    const windowFlags = SDL.WINDOW_RESIZABLE | SDL.WINDOW_OPENGL;
+
+    try SDL_GL.SetAttribute(SDL_GL.CONTEXT_MAJOR_VERSION, 3);
+    try SDL_GL.SetAttribute(SDL_GL.CONTEXT_MINOR_VERSION, 3);
+    
+    try SDL_GL.SetAttribute(SDL_GL.CONTEXT_PROFILE_MASK, SDL_GL.CONTEXT_PROFILE_CORE);
+    try SDL_GL.SetAttribute(SDL_GL.RED_SIZE, 8);
+    try SDL_GL.SetAttribute(SDL_GL.GREEN_SIZE, 8);
+    try SDL_GL.SetAttribute(SDL_GL.BLUE_SIZE, 8);
+    try SDL_GL.SetAttribute(SDL_GL.DOUBLEBUFFER, 1);
+    try SDL_GL.SetAttribute(SDL_GL.DEPTH_SIZE, 0);
+    try SDL_GL.SetAttribute(SDL_GL.STENCIL_SIZE, kStencilBits);
+    try SDL_GL.SetAttribute(SDL_GL.ACCELERATED_VISUAL, 1);
+   
+
+
+    var dm: SDL.DisplayMode = undefined;
+    try SDL.GetDesktopDisplayMode(0, &dm);
+
+    dm.h = 600;
+    dm.w = 500;
+    var window = SDL.CreateWindow("SDL Window", SDL.WINDOWPOS_CENTERED, SDL.WINDOWPOS_CENTERED, 500, 600, windowFlags);
     defer SDL.DestroyWindow(window);
-    const renderer = SDL.CreateRenderer(window, -1, SDL.RendererFlags.Accelarated);
-    defer SDL.DestroyRenderer(renderer);
+    var context = SDL_GL.CreateContext(window);
+    defer SDL_GL.DeleteContext(context);
 
-    // var vert: [3]c.SDL_Vertex = undefined;
-// 
-    // // center
-    // vert[0].position.x = 400;
-    // vert[0].position.y = 150;
-    // vert[0].color.r = 255;
-    // vert[0].color.g = 0;
-    // vert[0].color.b = 0;
-    // vert[0].color.a = 255;
-// 
-    // // left
-    // vert[1].position.x = 200;
-    // vert[1].position.y = 450;
-    // vert[1].color.r = 0;
-    // vert[1].color.g = 0;
-    // vert[1].color.b = 255;
-    // vert[1].color.a = 255;
-// 
-    // // right
-    // vert[2].position.x = 600;
-    // vert[2].position.y = 450;
-    // vert[2].color.r = 0;
-    // vert[2].color.g = 255;
-    // vert[2].color.b = 0;
-    // vert[2].color.a = 255;
+    gl.load({}, wrapper) catch
+    {
+       std.debug.panic("failed to initialize GL functions\n", .{});
+    };
+
+    try SDL_GL.MakeCurrent(window, context);        
+
+    // const windowFormat = SDL.GetWindowPixelFormat(window);
+    var contextType: i32 = undefined;
+    try SDL_GL.GetAttribute(SDL_GL.CONTEXT_PROFILE_MASK, &contextType);
+
+    var dw: c_int = undefined;
+    var dh: c_int = undefined;
+    SDL_GL.GetDrawableSize(window, &dw, &dh);
+
+    gl.viewport(0, 0, dw, dh);
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.clearStencil(0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+    var interface = c.gr_glinterface_create_native_interface();
+    var grContext = c.gr_direct_context_make_gl(interface);
+    
+    var buffer: gl.GLint = undefined;
+    gl.getIntegerv(gl.FRAMEBUFFER_BINDING, &buffer);
+
+    var info: c.gr_gl_framebufferinfo_t = .{
+        .fFBOID = @intCast(c_uint, buffer),
+        .fFormat = gl.RGB8,
+    };
+
+
+    // var recodingContext: *anyopaque = undefined;
+
+    var target = c.gr_backendrendertarget_new_gl(dw, dh, kMsaaSampleCount, kStencilBits, &info);
+    var props = c.sk_surfaceprops_new(c.USE_DEVICE_INDEPENDENT_FONTS_SK_SURFACE_PROPS_FLAGS, c.RGB_H_SK_PIXELGEOMETRY);
+    var surface = c.sk_surface_new_backend_render_target(
+        @ptrCast(*c.gr_recording_context_t, grContext),
+        target,
+        c.BOTTOM_LEFT_GR_SURFACE_ORIGIN,
+        c.RGB_888X_SK_COLORTYPE,
+        c.sk_colorspace_new_srgb(),
+        props,
+    );
+
+    var canvas =  c.sk_surface_get_canvas(surface);
+    var paint = c.sk_paint_new(); //c.sk_paint_new();
+    c.sk_paint_set_antialias(paint, true);
+    c.sk_paint_set_stroke_width(paint, 12.0);
+    c.sk_paint_set_color(paint, Sk.Colors.Green);
+    c.sk_paint_set_blendmode(paint, Sk.BlendMode.Color);
+    c.sk_paint_set_style(paint, Sk.PaintStyle.StrokeAndFill);
+
+    // const helpMessage: [:0]const u8 = "Click and drag to create rects.  Press esc to quit.";
+
+    // var cpuSurface =
+
+    // var font = c.sk_font_new_with_values(sk_typeface_t* typeface, float size, float scaleX, float skewX);
 
     var quit = false;
-    _ = ImGui.CreateContext(null);
-    try ImGui.ImplSDL2_InitForSDLRenderer(window);
-    ImGui.StyleColorsDark(null);
-    defer ImGui.ImplSDL2_Shutdown();
-    defer ImGui.DestroyContext(null);
-
-    var showDemoWindow = true;
-    var showAnotherWindow = false;
-    // var clearColor = c.ImVec4{}
-
     while(!quit)
     {
         var event: SDL.Event = undefined;
-
+        
         while(SDL.PollEvent(&event))
         {
             switch(event.type)
@@ -62,45 +130,24 @@ pub fn main() anyerror!void {
                 else => {},
             }
 
+            // try ImGui.ImplSDL2_ProcessEvent(&event);
             if(event.type == c.SDL_KEYDOWN and event.key.keysym.sym == c.SDLK_ESCAPE) quit = true;
         }
 
-        // const color = SDL.Color{ .r = 125, .g =45, .b=89, .a = 255 };
-        try SDL.SetRenderDrawColor(renderer, .{ .r = 125, .g =45, .b=89, .a = 255 });
-        try SDL.RenderClear(renderer);
-        
-        // SDL.RenderGeometry(renderer, null, vert, null);
-        
-        SDL.RenderPresent(renderer);
+        // c.sk_surface_flush(surface);
+        // c.gr_direct_context_flush_and_submit(grContext, false);
+        _ = rect;
+        // _ = canvas;
+        _ = paint;
 
-
-        ImGui.ImplSDL2_NewFrame();
-        ImGui.NewFrame();
-
-        if(showDemoWindow) ImGui.ShowDemoWindow(&showAnotherWindow);
-
-        {
-            var f: f32 = undefined;
-            _ = ImGui.Begin("hellow box", null, 0);
-            _ = ImGui.Text("this is text");
-            _ = ImGui.CheckBox("demo window", null);
-            _ = ImGui.SliderFloat("float", &f, 0.0, 1.0, "%.3f", 0);
-            ImGui.End();
-        }
-
-        if(showAnotherWindow)
-        {
-            _ = ImGui.Begin("another window", &showAnotherWindow, 0);
-            _ = ImGui.Text("hellow from anotehr window");
-            ImGui.End();
-        }
-
-        ImGui.Render();
+        gl.clearColor(0.3, 0.1, 0.5, 0.9);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        c.sk_canvas_clear(canvas, Sk.Colors.Blue);
+        c.sk_canvas_draw_rect(canvas, &rect, paint);
+        // c.sk_canvas_restore(canvas);
+        c.sk_canvas_flush(canvas);
+        SDL_GL.SwapWindow(window);
     }
 
-    SDL.Quit();
-}
-
-test "basic test" {
-    try std.testing.expectEqual(10, 3 + 7);
+    std.debug.print("exits normally\n", .{});
 }

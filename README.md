@@ -1,3 +1,4 @@
-A simple implementation of 3D and 2D charts with SDL2. //
-A problem with headers <https://github.com/libsdl-org/SDL/blob/main/include/SDL_render.h> exist.
-It is still a draft. Do not use.
+An attempt to port an older C# project to to Zig with SDL and Skia. \
+Skia Surface - Canvas for some reason does not render to OpenGL context. \
+I cannot specify why... \
+Used this snippet as a example to setup Skia with SDL <https://gist.github.com/eightbits0xFF/3df5842ac08977ce57681127ee1e6cf6>

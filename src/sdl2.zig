@@ -1,3 +1,4 @@
+const std = @import("std");
 const c = @import("c.zig");
 const vectors_lib = @import("vectors_lib.zig");
 const Vector3 = vectors_lib.Vector3;
@@ -6,6 +7,7 @@ const Vector3 = vectors_lib.Vector3;
 pub const Bool = c.SDL_bool;
 pub const False = c.SDL_FALSE;
 pub const True = c.SDL_TRUE;
+pub const DisplayMode = c.SDL_DisplayMode;
 
 
 pub const Window = ?*c.SDL_Window;
@@ -17,83 +19,119 @@ pub const Point = c.SDL_Point;
 pub const Rect = c.SDL_Rect;
 pub const Color = c.SDL_Color;
 
-pub const WindowPosCentered = c.SDL_WINDOWPOS_CENTERED;
-pub const WindowPosUndefined = c.SDL_WINDOWPOS_UNDEFINED;
+pub const WINDOWPOS_CENTERED = c.SDL_WINDOWPOS_CENTERED;
+pub const WINDOWPOS_UNDEFINED = c.SDL_WINDOWPOS_UNDEFINED;
 
 
-// window flags
-// pub const WindowFullscreen = c.SDL_WINDOW_FULLSCREEN;
-// pub const WindowFullscreenDesktop = c.SDL_WINDOW_FULLSCREEN_DESKTOP;
-// pub const WindowShown = c.SDL_WINDOW_SHOWN;
-// pub const WindowHidden = c.SDL_WINDOW_HIDDEN;
-// pub const WindowBorderless = c.SDL_WINDOW_BORDERLESS;
-// pub const WindowResizable = c.SDL_WINDOW_RESIZABLE;
-// pub const WindowMinimized = c.SDL_WINDOW_MINIMIZED;
-// pub const WindowMaximized = c.SDL_WINDOW_MAXIMIZED;
-// pub const WindowAllowHighDPI = c.SDL_WINDOW_ALLOW_HIGHDPI;
+pub const InitFlags = u32;
+pub const WindowFlags = u32;
+pub const RendererFlags = u32;
 
 
-pub const InitFlags = enum(u32)
-{
-    Timer = c.SDL_INIT_TIMER,
-    Audio = c.SDL_INIT_AUDIO,
-    Video = c.SDL_INIT_VIDEO,
-    Joystick = c.SDL_INIT_JOYSTICK,
-    Haptic = c.SDL_INIT_HAPTIC,
-    GameController = c.SDL_INIT_GAMECONTROLLER,
-    Events = c.SDL_INIT_EVENTS,
-    Everything = c.SDL_INIT_EVERYTHING,
-};
+// pub const InitFlags = enum(u32)
+// {
+    // Timer = c.SDL_INIT_TIMER,
+    // Audio = c.SDL_INIT_AUDIO,
+    // Video = c.SDL_INIT_VIDEO,
+    // Joystick = c.SDL_INIT_JOYSTICK,
+    // Haptic = c.SDL_INIT_HAPTIC,
+    // GameController = c.SDL_INIT_GAMECONTROLLER,
+    // Events = c.SDL_INIT_EVENTS,
+    // Everything = c.SDL_INIT_EVERYTHING,
+// };
+
+
+pub const INIT_TIMER = c.SDL_INIT_TIMER;
+pub const INIT_AUDIO = c.SDL_INIT_AUDIO;
+pub const INIT_VIDEO = c.SDL_INIT_VIDEO;
+pub const INIT_JOYSTICK = c.SDL_INIT_JOYSTICK;
+pub const INIT_HAPTIC = c.SDL_INIT_HAPTIC;
+pub const INIT_GAMECONTROLLER = c.SDL_INIT_GAMECONTROLLER;
+pub const INIT_EVENTS = c.SDL_INIT_EVENTS;
+pub const INIT_EVERYTHING = c.SDL_INIT_EVERYTHING;
+
+
+
+/// the renderer is a software fallback
+pub const RENDERER_SOFTWARE = c.SDL_RENDERER_SOFTWARE;
+/// the renderer uses hardware acceleration
+pub const RENDERER_ACCELERATED = c.SDL_RENDERER_ACCELERATED;
+/// present is synchronized with the refresh rate
+pub const SDL_RENDERER_PRESENTVSYNC = c.SDL_RENDERER_PRESENTVSYNC;
+/// the renderer supports rendering to texture
+pub const RENDERER_TARGETTEXTURE = c.SDL_RENDERER_TARGETTEXTURE;   
+
 
 pub inline fn Init(flags: InitFlags) !void
 {
-    if(c.SDL_Init(@enumToInt(flags)) != 0) return Error.SDL_error;
+    if(c.SDL_Init(flags) != 0) return Error.SDL_error;
 }
 
 
-/// An enumeration of window states.
-pub const WindowFlags = enum(u32)
-{
-    /// fullscreen window
-    Fullscreen = c.SDL_WINDOW_FULLSCREEN,
-    /// fullscreen window at the current desktop resolution
-    FullscreenDesktop = c.SDL_WINDOW_FULLSCREEN_DESKTOP,
-    /// window is visible
-    Shown = c.SDL_WINDOW_SHOWN,
-    /// window is not visible
-    Hidden = c.SDL_WINDOW_HIDDEN,
-    /// no window decoration
-    Borderless = c.SDL_WINDOW_BORDERLESS,
-    /// window can be resized
-    Resizable = c.SDL_WINDOW_RESIZABLE,
-    /// window is minimized
-    Minimized = c.SDL_WINDOW_MINIMIZED,
-    /// window is maximized
-    Maximized = c.SDL_WINDOW_MAXIMIZED,
-    /// window should be created in high-DPI mode if supported (>= SDL 2.0.1)
-    AllowHighDPI = c.SDL_WINDOW_ALLOW_HIGHDPI,
-};
+/// fullscreen window
+pub const WINDOW_FULLSCREEN = c.SDL_WINDOW_FULLSCREEN;
+/// fullscreen window at the current desktop resolution
+pub const WINDOW_FULLSCREEN_DESKTOP = c.SDL_WINDOW_FULLSCREEN_DESKTOP;
+/// window usable with OpenGL context
+pub const WINDOW_OPENGL = c.SDL_WINDOW_OPENGL;
+/// window is visible
+pub const WINDOW_SHOWN = c.SDL_WINDOW_SHOWN;
+/// window is not visible
+pub const WINDOW_HIDDEN = c.SDL_WINDOW_HIDDEN;
+/// no window decoration
+pub const WINDOW_BORDERLESS = c.SDL_WINDOW_BORDERLESS;
+/// window can be resized
+pub const WINDOW_RESIZABLE = c.SDL_WINDOW_RESIZABLE;
+/// window is minimized
+pub const WINDOW_MINIMIZED = c.SDL_WINDOW_MINIMIZED;
+/// window is maximized
+pub const SDL_WINDOW_MAXIMIZED = c.SDL_WINDOW_MAXIMIZED;
+/// window should be created in high-DPI mode if supported (>= SDL 2.0.1)
+pub const WINDOW_ALLOW_HIGHDPI = c.SDL_WINDOW_ALLOW_HIGHDPI;
 
 
-// renderer flags
-// pub const RendererSoftware = c.SDL_RENDERER_SOFTWARE;
-// pub const RendererAccelarated = c.SDL_RENDERER_ACCELERATED;
-// pub const RendererPresentVSync = c.SDL_RENDERER_PRESENTVSYNC;
-// pub const RendererTargetTexture = c.SDL_RENDERER_TARGETTEXTURE;
+
+
+// 
+// /// An enumeration of window states.
+// pub const WindowFlags = enum(u32)
+// {
+    // /// fullscreen window
+    // Fullscreen = c.SDL_WINDOW_FULLSCREEN,
+    // /// fullscreen window at the current desktop resolution
+    // FullscreenDesktop = c.SDL_WINDOW_FULLSCREEN_DESKTOP,
+    // /// window usable with OpenGL context
+    // OpenGL = c.SDL_WINDOW_OPENGL,
+    // /// window is visible
+    // Shown = c.SDL_WINDOW_SHOWN,
+    // /// window is not visible
+    // Hidden = c.SDL_WINDOW_HIDDEN,
+    // /// no window decoration
+    // Borderless = c.SDL_WINDOW_BORDERLESS,
+    // /// window can be resized
+    // Resizable = c.SDL_WINDOW_RESIZABLE,
+    // /// window is minimized
+    // Minimized = c.SDL_WINDOW_MINIMIZED,
+    // /// window is maximized
+    // Maximized = c.SDL_WINDOW_MAXIMIZED,
+    // /// window should be created in high-DPI mode if supported (>= SDL 2.0.1)
+    // AllowHighDPI = c.SDL_WINDOW_ALLOW_HIGHDPI,
+// };
 
 
 /// An enumeration of flags used when creating a rendering context.
-pub const RendererFlags = enum(u32)
-{
-    /// the renderer is a software fallback
-    Software = c.SDL_RENDERER_SOFTWARE,
-    /// the renderer uses hardware acceleration
-    Accelarated = c.SDL_RENDERER_ACCELERATED,
-    /// present is synchronized with the refresh rate
-    PresentVSync = c.SDL_RENDERER_PRESENTVSYNC,
-    /// the renderer supports rendering to texture
-    TargetTexture = c.SDL_RENDERER_TARGETTEXTURE,   
-};
+// pub const RendererFlags = enum(u32)
+// {
+    // /// the renderer is a software fallback
+    // Software = c.SDL_RENDERER_SOFTWARE,
+    // /// the renderer uses hardware acceleration
+    // Accelarated = c.SDL_RENDERER_ACCELERATED,
+    // /// present is synchronized with the refresh rate
+    // PresentVSync = c.SDL_RENDERER_PRESENTVSYNC,
+    // /// the renderer supports rendering to texture
+    // TargetTexture = c.SDL_RENDERER_TARGETTEXTURE,
+// };
+
 
 /// Poll for currently pending events.
 pub inline fn PollEvent(event: *Event) bool
@@ -109,7 +147,7 @@ pub inline fn CreateWindow(title: [:0]const u8, x: u32, y: u32, w: u32, h: u32, 
                               @intCast(c_int, y),
                               @intCast(c_int, w),
                               @intCast(c_int, h),
-                              @enumToInt(flags));
+                              flags);
 }
 
 /// Destroy a window.
@@ -134,7 +172,7 @@ pub inline fn MaximizeWindow(window: Window) void
 /// Set a window's fullscreen state.
 pub inline fn SetWindowFullscreen(window: Window, flags: WindowFlags) !void
 {
-    if(c.SDL_SetWindowFullscreen(window, @enumToInt(flags)) != 0) return Error.SDL_error;
+    if(c.SDL_SetWindowFullscreen(window, flags) != 0) return Error.SDL_error;
 }
 
 /// Restore the size and position of a minimized or maximized window.
@@ -146,7 +184,7 @@ pub inline fn RestoreWindow(window: Window) void
 /// Create a 2D rendering context for a window.
 pub inline fn CreateRenderer(window: Window, index: c_int, flags: RendererFlags) Renderer
 {
-    return c.SDL_CreateRenderer(window, index, @enumToInt(flags));
+    return c.SDL_CreateRenderer(window, index, flags);
 }
 
 
@@ -164,9 +202,10 @@ pub inline fn Quit() void
 
 pub const Error = error { SDL_error };
 
-pub fn GetError() []const u8
+pub fn GetError() void
 {
-    unreachable;
+    const err = c.SDL_GetError();
+    std.debug.panic("{s}\n", .{err});
 }
 
 
@@ -262,3 +301,15 @@ pub inline fn RenderClear(renderer: Renderer) !void
 {
     if(c.SDL_RenderClear(renderer) != 0) return Error.SDL_error;
 }
+
+/// Get information about the desktop's display mode.
+pub inline fn GetDesktopDisplayMode(displayIndex: u32, mode: *DisplayMode) !void
+{
+    if(c.SDL_GetDesktopDisplayMode(@intCast(c_int, displayIndex), mode) != 0) return Error.SDL_error;
+}
+
+/// Get the pixel format associated with the window.
+pub inline fn GetWindowPixelFormat(window: Window) c_uint
+{
+    return c.SDL_GetWindowPixelFormat(window);
+} 

@@ -296,10 +296,10 @@ pub const Matrix4x4 = struct
     {
         return .{
             .val = [4]f32{ 
-                [_]f32{a00, a01, a02, 0.0},
-                [_]f32{a10, a11, a12, 0.0},
-                [_]f32{a20, a21, a22, 0.0},
-                [_]f32{a30, a31, a32, 1.0},
+                [_]f32{a00, a01, a02, a03},
+                [_]f32{a10, a11, a12, a13},
+                [_]f32{a20, a21, a22, a23},
+                [_]f32{0.0, 0.0, 0.0, 1.0},
             },    
         };
     }
@@ -339,7 +339,7 @@ pub const Matrix4x4 = struct
 
         const cross = Vector3.cross;
         const sub = Vector3.sub;
-        const mul = Vector3.mul;
+        const _mul = Vector3.mul;
         const dot = Vector3.dot;
         const add = Vector3.add;
 
@@ -354,10 +354,10 @@ pub const Matrix4x4 = struct
         u.* = mul(u, invDet);        
         v.* = mul(v, invDet);        
 
-        const r0 = &add(cross(b, v), (mul(t, y)));
-        const r1 = &sub(cross(v, a), (mul(t, x)));
-        const r2 = &add(cross(d, u), (mul(s, w)));
-        const r3 = &sub(cross(u, c), (mul(s, z)));
+        const r0 = &add(cross(b, v), (_mul(t, y)));
+        const r1 = &sub(cross(v, a), (_mul(t, x)));
+        const r2 = &add(cross(d, u), (_mul(s, w)));
+        const r3 = &sub(cross(u, c), (_mul(s, z)));
 
         return matrix(r0.x, r0.y, r0.z, -dot(b, t),
                       r1.x, r1.y, r1.z, dot(a, t),
@@ -396,7 +396,7 @@ pub const Matrix4x4 = struct
         );
     }
     
-    pub fn makeOrthoProjection(l: f32, r: f32, b: f32, n: f32, f: f32) Matrix4x4
+    pub fn makeOrthoProjection(t: f32, r: f32, b: f32, n: f32, f: f32) Matrix4x4
     {
         const w_inv = 1.0 / (r - 1.0);
         const h_inv = 1.0 / (b - t);

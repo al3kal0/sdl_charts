@@ -1,3 +1,5 @@
+const Sk = @import("sk.zig");
+
 
 pub const Colormap = enum
 {
@@ -20,10 +22,10 @@ inline fn ushort(i: usize) u16
 
 pub const Colorbar = struct
 {
-    vertices: []SkPoint,
+    vertices: []SK.Point,
     indices: []u16,
-    colors: []SkColor,
-    border: SkRect,
+    colors: []SK.Color,
+    border: SK.Rect,
     drawBorder: bool,
     colormap: Colormap,
     fontSize: f32,
@@ -47,27 +49,31 @@ pub const Colorbar = struct
         var dx = 20.0;
         var value = zmax;
 
+        const vertices = self.vertices;
+        const indices = self.vertices;
+        const colors = self.colors;
+        
         var i: usize = 0;
         var c: usize = 0;
         var m: usize = 0;       
         while(m < vertices.len)
         {
-            self.vertices[m + 0] = SkPoint{ .x = x, .y = y};
-            self.vertices[m + 1] = SkPoint{ .x = x + dx, .y = y};
-            self.vertices[m + 2] = SkPoint{ .x = x + dx, .y = y + dy};
-            self.vertices[m + 3] = SkPoint{ .x = x, .y = y + dy};
+            vertices[m + 0] = Sk.Point{ .x = x, .y = y};
+            vertices[m + 1] = Sk.Point{ .x = x + dx, .y = y};
+            vertices[m + 2] = Sk.Point{ .x = x + dx, .y = y + dy};
+            vertices[m + 3] = Sk.Point{ .x = x, .y = y + dy};
 
-            self.indices[i + 0] = ushort(m + 0);
-            self.indices[i + 1] = ushort(m + 1);
-            self.indices[i + 2] = ushort(m + 3);
-            self.indices[i + 3] = ushort(m + 3);
-            self.indices[i + 4] = ushort(m + 1);
-            self.indices[i + 5] = ushort(m + 2);
+            indices[i + 0] = ushort(m + 0);
+            indices[i + 1] = ushort(m + 1);
+            indices[i + 2] = ushort(m + 3);
+            indices[i + 3] = ushort(m + 3);
+            indices[i + 4] = ushort(m + 1);
+            indices[i + 5] = ushort(m + 2);
 
-            self.colors[c + 0] = ColorPicker(colormap, value, zmin, zmax);
-            self.colors[c + 1] = ColorPicker(colormap, value, zmin, zmax);
-            self.colors[c + 2] = ColorPicker(colormap, value, zmin, zmax);
-            self.colors[c + 3] = ColorPicker(colormap, value, zmin, zmax);
+            colors[c + 0] = ColorPicker(colormap, value, zmin, zmax);
+            colors[c + 1] = ColorPicker(colormap, value, zmin, zmax);
+            colors[c + 2] = ColorPicker(colormap, value, zmin, zmax);
+            colors[c + 3] = ColorPicker(colormap, value, zmin, zmax);
 
             value -= (zmax - zmin) / 64.0;
             y += dy;

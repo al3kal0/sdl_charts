@@ -5,7 +5,7 @@ pub usingnamespace @cImport({
     @cInclude("cimgui_impl.h");
     @cInclude("SDL.h");
     @cInclude("SDL_opengl.h");
-    @cInclude("GL/glu.h");    
+    @cInclude("GL/glu.h");
     
     @cInclude("include/c/gr_context.h");      
     @cInclude("include/c/sk_canvas.h");

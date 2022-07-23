@@ -16,10 +16,14 @@ pub fn build(b: *std.build.Builder) void {
     exe.setBuildMode(mode);
     exe.linkLibC();
     exe.linkSystemLibrary("SDL2");
-    // exe.linkSystemLibrary("SDL2_ttf");
+    exe.linkSystemLibrary("OpenGL");
+    exe.addIncludeDir(".");
+    exe.linkSystemLibrary("glu");
     exe.addIncludeDir("include");
     exe.addLibPath("include");
-    exe.linkSystemLibraryName("cimgui_sdl");    
+    exe.linkSystemLibraryName("cimgui_sdl");
+    exe.linkSystemLibraryName("SkiaSharp");
+    exe.linkSystemLibraryName("HarfBuzzSharp");
     exe.install();
 
     const run_cmd = exe.run();
@@ -32,7 +36,6 @@ pub fn build(b: *std.build.Builder) void {
     run_step.dependOn(&run_cmd.step);
 
     const exe_tests = b.addTest("src/main.zig");
-    exe_tests.setTarget(target);
     exe_tests.setBuildMode(mode);
 
     const test_step = b.step("test", "Run unit tests");
